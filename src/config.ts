@@ -48,6 +48,51 @@ Do NOT use for yields -- use defi_find_best_yields instead. Do NOT use for swap 
         },
         required: [],
       },
+      outputSchema: {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "description": "Protocol filter"
+            },
+            "asset": {
+              "type": "string",
+              "description": "Asset filter"
+            },
+            "results": {
+              "type": "number",
+              "description": "Number of results"
+            },
+            "total_pools_analyzed": {
+              "type": "number"
+            },
+            "aggregate": {
+              "type": "object",
+              "properties": {
+                "total_estimated_at_risk_usd": {
+                  "type": "number"
+                },
+                "critical_pools": {
+                  "type": "number"
+                },
+                "high_risk_pools": {
+                  "type": "number"
+                }
+              }
+            },
+            "levels": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "required": [
+            "results",
+            "aggregate",
+            "levels"
+          ]
+        },
     },
   ],
 };
