@@ -3,7 +3,7 @@ import type { ApiConfig } from "./shared";
 export const API_CONFIG: ApiConfig = {
   name: "liquidation-oracle",
   slug: "liquidation-oracle",
-  description: "Real-time liquidation levels from DeFi lending protocols.",
+  description: "DeFi liquidation levels from Aave, Compound, Morpho -- at-risk positions, price triggers, aggregate exposure.",
   version: "1.0.0",
   routes: [
     {
@@ -12,7 +12,20 @@ export const API_CONFIG: ApiConfig = {
       price: "$0.003",
       description: "Get liquidation risk levels for DeFi lending protocols",
       toolName: "defi_get_liquidation_levels",
-      toolDescription: "Use this when you need to check liquidation risk in DeFi lending. Returns at-risk positions, closest liquidation prices, aggregate liquidatable value by protocol and asset. Powered by DeFiLlama. Do NOT use for yields — use defi_find_best_yields. Do NOT use for swap quotes — use dex_get_swap_quote.",
+      toolDescription: `Use this when you need to check liquidation risk levels in DeFi lending protocols. Returns at-risk positions and liquidation triggers in JSON.
+
+1. positions: array of at-risk positions with owner, protocol, collateral asset, collateral value USD
+2. liquidationPrice: price at which the position gets liquidated
+3. currentPrice: current market price of the collateral
+4. distancePercent: how far current price is from liquidation (%)
+5. aggregateAtRisk: total USD value at risk per protocol
+6. protocol: lending protocol name (Aave, Compound, Morpho, Venus)
+
+Example output: {"positions":[{"protocol":"Aave V3","collateral":"WETH","collateralUsd":245000,"liquidationPrice":2850.00,"currentPrice":3100.00,"distancePercent":8.06}],"aggregateAtRisk":{"Aave V3":12500000},"totalPositions":42}
+
+Use this BEFORE large market moves to identify cascade liquidation risk. Essential for liquidation bot operators and risk monitoring.
+
+Do NOT use for yields -- use defi_find_best_yields instead. Do NOT use for swap quotes -- use dex_get_swap_quote instead. Do NOT use for wallet balance -- use wallet_get_portfolio instead.`,
       inputSchema: {
         type: "object",
         properties: {
