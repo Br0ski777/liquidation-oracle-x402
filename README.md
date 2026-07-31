@@ -35,7 +35,7 @@ Any x402-aware client ([`@x402/fetch`](https://www.npmjs.com/package/@x402/fetch
 
 | Tool | Method | Path | Price | Description |
 |---|---|---|---|---|
-| `defi_get_liquidation_levels` | GET | `/api/levels` | $0.008 | Get liquidation risk levels for DeFi lending protocols |
+| `defi_get_liquidation_levels` | GET | `/api/levels` | $0.003 | Get liquidation risk levels for DeFi lending protocols |
 
 ### `defi_get_liquidation_levels`
 
