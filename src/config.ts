@@ -9,7 +9,7 @@ export const API_CONFIG: ApiConfig = {
     {
       method: "GET",
       path: "/api/levels",
-      price: "$0.008",
+      price: "$0.003",
       description: "Get liquidation risk levels for DeFi lending protocols",
       toolName: "defi_get_liquidation_levels",
       toolDescription: `Use this when you need to check liquidation risk levels in DeFi lending protocols. Returns at-risk positions and liquidation triggers in JSON.
