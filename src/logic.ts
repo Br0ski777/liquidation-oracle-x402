@@ -106,17 +106,58 @@ function estimateAtRiskValue(totalBorrowUsd: number, utilizationRate: number, lt
   return totalBorrowUsd * riskFraction;
 }
 
+// /lendBorrow carries only the borrow-side numbers, keyed by pool id; the
+// protocol, chain and asset name live in /pools under that same id. Reading
+// one without the other labelled every row "Unknown".
 async function fetchLendBorrowPools(): Promise<LendingPool[]> {
   const cached = getCached<LendingPool[]>("lend_borrow_pools");
   if (cached) return cached;
 
-  const resp = await fetch("https://yields.llama.fi/lendBorrow");
-  if (!resp.ok) {
-    throw new Error(`DeFiLlama lendBorrow API error: ${resp.status} ${resp.statusText}`);
+  const [borrowResp, poolsResp] = await Promise.all([
+    fetch("https://yields.llama.fi/lendBorrow", { signal: AbortSignal.timeout(8000) }),
+    fetch("https://yields.llama.fi/pools", { signal: AbortSignal.timeout(8000) }),
+  ]);
+
+  if (!borrowResp.ok) {
+    throw new Error(`DeFiLlama lendBorrow API error: ${borrowResp.status} ${borrowResp.statusText}`);
   }
 
-  const json = (await resp.json()) as { data: LendingPool[] };
-  const pools = json.data || [];
+  // /lendBorrow answers with a bare array, /pools with { data: [...] }.
+  // Accept either on both: reading only .data yielded an empty list and the
+  // route went on charging for an empty response.
+  const unwrap = (j: any): any[] => (Array.isArray(j) ? j : j?.data || []);
+
+  const borrowRows = unwrap(await borrowResp.json());
+  if (borrowRows.length === 0) {
+    throw new Error("DeFiLlama lendBorrow returned no pools");
+  }
+
+  const meta = new Map<string, any>();
+  if (poolsResp.ok) {
+    for (const m of unwrap(await poolsResp.json())) {
+      if (m?.pool) meta.set(m.pool, m);
+    }
+  }
+
+  const pools: LendingPool[] = borrowRows.map((row: any) => {
+    const m = meta.get(row.pool) || {};
+    return {
+      pool: row.pool,
+      chain: m.chain || "Unknown",
+      project: m.project || "Unknown",
+      symbol: m.symbol || "Unknown",
+      tvlUsd: m.tvlUsd ?? 0,
+      apyBase: m.apyBase ?? null,
+      apyReward: m.apyReward ?? null,
+      apy: m.apy ?? 0,
+      apyBaseBorrow: row.apyBaseBorrow ?? null,
+      apyRewardBorrow: row.apyRewardBorrow ?? null,
+      totalSupplyUsd: row.totalSupplyUsd ?? 0,
+      totalBorrowUsd: row.totalBorrowUsd ?? 0,
+      ltv: row.ltv ?? null,
+    };
+  });
+
   setCache("lend_borrow_pools", pools);
   return pools;
 }
